@@ -56,6 +56,12 @@ packer.startup(function(use)
   -- keybindings
   use "folke/which-key.nvim"
 
+  -- git stuff
+  use "TimUntersberger/neogit"
+
+  -- misc plugins
+  use "nvim-neorg/neorg"
+
   -- theme
   use "NTBBloodbath/doom-one.nvim"
 
