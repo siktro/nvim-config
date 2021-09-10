@@ -1,14 +1,5 @@
-local ok, wk = pcall(require, "which-key")
-if not ok then
-  error(string.format("'which-key' is not found/installed\nerr: %s", wk))
-  return
-end
-
-local ok, telescope = pcall(require, "telescope.builtin")
-if not ok then
-  error(string.format("'telescope' is not found/installed\nerr: %s", wk))
-  return
-end
+local wk = Q.ensure_module("which-key")
+local telescope = Q.ensure_module("telescope.builtin")
 
 vim.g.mapleader = " "
 

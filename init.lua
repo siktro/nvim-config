@@ -1,4 +1,5 @@
--- setup logger and custom global namespace
+-- setup global helper table
 require "siktro.preinit"
+
 -- main config
 require "siktro"

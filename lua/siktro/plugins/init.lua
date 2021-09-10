@@ -1,8 +1,9 @@
-local ok, packer = pcall(require, "packer")
+local packer = Q.ensure_module("packer")
 
 -- {{{ Installing "packer" if it's not found.
+-- TODO: refactor out installation process
 -- see: https://github.com/wbthomason/packer.nvim#bootstrapping
-if not ok then
+if not packer then
   local exec = vim.api.nvim_command
   local fn = vim.fn
 
@@ -13,11 +14,7 @@ if not ok then
     exec "packadd packer.nvim"
   end
 
-  ok, packer = pcall(require, "packer")
-  if not ok then
-    error(string.format("unable to find/install packer\nerr: %s", packer))
-    return
-  end
+  packer = Q.ensure_module("packer", true)
 end
 -- }}}
 
@@ -36,62 +33,37 @@ packer.init {
 
 -- {{{ Plugins
 packer.startup(function(use)
-  -- "packer" itself
+  -- plugin manager
   use "wbthomason/packer.nvim"
 
-  -- utility lib; thing that most plugins wants
+  -- widly used lib
   use "nvim-lua/plenary.nvim"
 
-  -- treesitter
-  use {
-    "nvim-treesitter/nvim-treesitter",
-    config = function()
-      require "siktro.plugins.treesitter"
-    end,
-  }
-
-  --- LSP
-  use "neovim/nvim-lspconfig"
-  use {
-    "kabouzeid/nvim-lspinstall",
-    requires = "neovim/nvim-lspconfig",
-  }
-
+  -- useful plugins
+  use "nvim-treesitter/nvim-treesitter"
   use "nvim-telescope/telescope.nvim"
 
-  -- autocompletion
-  use {
-    "hrsh7th/nvim-compe",
-    config = function()
-      require("compe").setup {
-        source = {
-          path = true,
-          buffer = true,
-          nvim_lsp = true,
-          nvim_lua = true,
-          calc = false,
-          vsnip = false,
-          luasnip = false,
-          ultisnips = false,
-        },
-      }
-    end,
-  }
+  -- LSP
+  use "neovim/nvim-lspconfig"
+  use "kabouzeid/nvim-lspinstall"
 
-  -- Keybindings
+  -- autocompletition & snippets
+  use "hrsh7th/nvim-cmp"
+  use "hrsh7th/cmp-nvim-lsp"
+  use "L3MON4D3/LuaSnip"
+  use "saadparwaiz1/cmp_luasnip"
+
+  -- keybindings
   use "folke/which-key.nvim"
 
-  --- Misc
+  -- theme
+  use "NTBBloodbath/doom-one.nvim"
+
   -- cool icons
   use "kyazdani42/nvim-web-devicons"
-
-  -- Color theme
-  use "rafamadriz/neon"
-
-  -- bufferline
-  use {
-    "romgrk/barbar.nvim",
-    requires = "kyazdani42/nvim-web-devicons",
-  }
+  use "onsails/lspkind-nvim"
 end)
+
+-- TODO: refactor out
+require "lua.siktro.plugins.configs.cmp"
 -- }}}

@@ -16,9 +16,7 @@ local function create_log_entry(level, msg)
   table.insert(logs, log)
 end
 
--- TODO: add check for file size;
--- when some limit is reached we need to cut/drop file
--- or backup it.
+-- TODO: if errors were found then we need to backup a session.log file
 local function save_log()
   if not #logs then
     -- no new logs
@@ -30,6 +28,7 @@ local function save_log()
     f:write(log)
   end
   f:close()
+  logs = {} -- clear logs
 end
 
 local logger = nil
@@ -45,10 +44,6 @@ local function start_logger(interval)
   logger = vim.loop.new_timer()
   logger:start(interval, 0, save_log)
 end
-
--- separate each new session
-table.insert(logs, string.format("\n\n%s\n", string.rep("=", 80)))
-create_log_entry("INFO", "New session")
 
 -- dump logs into file each minute
 start_logger(60 * 1000)
@@ -68,15 +63,14 @@ Q = {
     return string.format(...)
   end,
 
-  -- tries to require a module and returns it on successes.
-  -- otherwise returs either 'nil' (throw == false) or 'error' (throw == true).
-  ensure_module = function(mod_name, throw)
+  -- tries to require a module and returns it on successes,
+  -- or raise an error.
+  ensure_module = function(mod_name)
     local ok, out = pcall(require, mod_name)
     if not ok then
-      create_log_entry("FAIL", Q.sf("Module %q is not found/loaded. Error: %s", out))
-    end
-    if throw then
-      error()
+      create_log_entry("FAIL", Q.f("Module %q is not found/loaded. Error: %s", mod_name, out))
+      save_log()
+      error(Q.f("unable to load module %q; see log.", mod_name))
     end
     return ok and out or nil
   end,
@@ -84,10 +78,10 @@ Q = {
   -- fn for creating a new log entry
   log = create_log_entry,
 
-  -- just in case
   logger = {
     -- TODO: add ability to dump/view current log in vim
     start = start_logger,
-    stop = stop_logger
+    stop = stop_logger,
+    save = save_log,
   }
 }

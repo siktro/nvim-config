@@ -1,28 +1,30 @@
-local ok, lspinstall = pcall(require, "lspinstall")
-
-if not ok then
-  error(string.format("'lspinstall' is not found/installed\nerr: %s", lspinstall))
-  return
-end
+local lspinstall = Q.ensure_module("lspinstall")
+local nvim_lsp_cmp = Q.ensure_module("cmp_nvim_lsp")
 
 local lspconfig = require "lspconfig"
 local configs = {
   lua = require "siktro.lsp.configs.lua",
 }
 
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities = nvim_lsp_cmp.update_capabilities(capabilities)
+
 local function setup_servers()
   lspinstall.setup()
   local servers = lspinstall.installed_servers()
-  -- lspconfig[lang].setup {
-  --     on_attach = on_attach,
-  --     capabilities = capabilities,
-  -- }
+
   for _, serv in pairs(servers) do
-    local conf = configs[serv]
-    if conf and not conf.root_dir then
+    local conf = configs[serv] or {}
+
+    if not conf.root_dir then
       conf.root_dir = vim.loop.cwd
     end
-    lspconfig[serv].setup(conf or {})
+
+    if not conf.capabilities then
+      conf.capabilities = capabilities
+    end
+
+    lspconfig[serv].setup(conf)
   end
 end
 
